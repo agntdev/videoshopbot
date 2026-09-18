@@ -5,9 +5,9 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "sendPhoto",
             "payload": {
-              "text": "Open the product catalog (seeded with two videos)"
+              "caption": "Sunrise in the City\nA bright, cinematic morning walk.\n⭐ 25 Stars"
             }
           }
         ],

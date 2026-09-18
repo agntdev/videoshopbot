@@ -5,14 +5,14 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
+            "method": "sendPhoto",
             "payload": {
-              "text": "Show extended product description and preview thumbnail"
+              "caption": "Sunrise in the City\n\nWatch the city wake up in warm light, with a gentle soundtrack and quick cinematic cuts.\n\n⭐ 25 Stars"
             }
           }
         ],
         "send": {
-          "callback": "product:details:{product_id}"
+          "callback": "product:details:sunrise"
         }
       }
     ]

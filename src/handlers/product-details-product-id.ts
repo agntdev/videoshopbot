@@ -1,17 +1,21 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { inlineButton, inlineKeyboard } from "../toolkit/index.js";
+import { ensureProducts, productButtons } from "../store.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Details", data: "product:details:{product_id}" }) if the toolkit exposes it.
-
-const composer = new Composer();
-
-composer.callbackQuery("product:details:{product_id}", async (ctx) => {
+const composer = new Composer<Ctx>();
+composer.callbackQuery(/^product:details:(.+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.reply("Show extended product description and preview thumbnail");
+  const id = ctx.match[1];
+  const state = await ensureProducts(ctx);
+  const product = state.products[id];
+  if (!product || !product.visible) {
+    await ctx.reply("I couldn't find that video. Open the catalog to try again.");
+    return;
+  }
+  await ctx.replyWithPhoto(product.thumbnailFileId, {
+    caption: `${product.title}\n\n${product.longDescription}\n\n⭐ ${product.priceStars} Stars`,
+    reply_markup: inlineKeyboard([productButtons(product), [inlineButton("⬅️ Catalog", "catalog:start")]]),
+  });
 });
-
 export default composer;
