@@ -5,14 +5,12 @@
       {
         "expect": [
           {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Start the purchase flow for the selected product; opens a Telegram invoice using Stars"
-            }
+            "method": "sendInvoice",
+            "payload": { "title": "Sunrise in the City", "currency": "XTR" }
           }
         ],
         "send": {
-          "callback": "buy:start:{product_id}"
+          "callback": "buy:start:sunrise"
         }
       }
     ]

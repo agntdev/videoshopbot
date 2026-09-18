@@ -1,17 +1,38 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { registerMainMenuItem, inlineButton, inlineKeyboard } from "../toolkit/index.js";
+import { ensureProducts, productButtons } from "../store.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Catalog", data: "catalog:start" }) if the toolkit exposes it.
+registerMainMenuItem({ label: "Catalog", data: "catalog:start", order: 10 });
+const composer = new Composer<Ctx>();
 
-const composer = new Composer();
+async function showCatalog(ctx: Ctx, edit = false) {
+  const state = await ensureProducts(ctx);
+  if (state.maintenance) {
+    const options = { reply_markup: inlineKeyboard([[inlineButton("⬅️ Back", "menu:main")]]) };
+    if (edit) await ctx.editMessageText("The shop is being refreshed. Please check back soon.", options);
+    else await ctx.reply("The shop is being refreshed. Please check back soon.", options);
+    return;
+  }
+  const products = Object.values(state.products).filter((p) => p.visible);
+  if (products.length === 0) {
+    const options = { reply_markup: inlineKeyboard([[inlineButton("⬅️ Back", "menu:main")]]) };
+    if (edit) await ctx.editMessageText("The shop is taking a short break. Try again soon.", options);
+    else await ctx.reply("The shop is taking a short break. Try again soon.", options);
+    return;
+  }
+  for (const product of products) {
+    const options = { reply_markup: inlineKeyboard([productButtons(product), [inlineButton("⬅️ Back", "menu:main")]]) };
+    await ctx.replyWithPhoto(product.thumbnailFileId, {
+      caption: `${product.title}\n${product.shortDescription}\n⭐ ${product.priceStars} Stars`,
+      ...options,
+    });
+  }
+}
 
 composer.callbackQuery("catalog:start", async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.reply("Open the product catalog (seeded with two videos)");
+  await showCatalog(ctx);
 });
 
 export default composer;
